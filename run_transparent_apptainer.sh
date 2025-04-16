@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-#Deploy script for singularity Containers "Transparent Singularity"
+#Deploy script for apptainer Containers "Transparent Apptainer"
 #Creates wrapper scripts for all executables in a container's $DEPLOY_PATH
-# singularity needs to be available
+# apptainer needs to be available
 # for downloading images from nectar it needs curl installed
 #11/07/2018
 #by Steffen Bollmann <Steffen.Bollmann@cai.uq.edu.au> & Tom Shaw <t.shaw@uq.edu.au>
 # set -e
 
-echo "[DEBUG] This is the run_transparent_singularity.sh script"
+echo "[DEBUG] This is the run_transparent_apptainer.sh script"
 
-export SINGULARITY_BINDPATH=$SINGULARITY_BINDPATH,$PWD
+export APPTAINER_BINDPATH=$APPTAINER_BINDPATH,$PWD
 
 _script="$(readlink -f ${BASH_SOURCE[0]})" ## who am i? ##
 _base="$(dirname $_script)" ## Delete last component from $_script ##
 
-# echo "making sure this is not running in a symlinked directory (singularity bug)"
+# echo "making sure this is not running in a symlinked directory (apptainer bug)"
 # echo "path: $_base"
 cd $_base
 _base=`pwd -P`
@@ -41,8 +41,8 @@ while [[ $# -gt 0 ]]
       shift # past argument
       shift # past value
       ;;
-      -o|--singularity-opts)
-      singularity_opts="$2"
+      -o|--apptainer-opts)
+      apptainer_opts="$2"
       shift # past argument
       shift # past value
       ;;
@@ -68,15 +68,15 @@ if [ -z "$container" ]; then
       echo "-----------------------------------------------"
       echo "Select the container you would like to install:"
       echo "-----------------------------------------------"
-      echo "singularity container list:"
+      echo "apptainer container list:"
       curl -s https://raw.githubusercontent.com/NeuroDesk/neurodesk/master/cvmfs/log.txt
       echo " "
       echo "-----------------------------------------------"
       echo "usage examples:"
-      echo "./run_transparent_singularity.sh CONTAINERNAME"
-      echo "./run_transparent_singularity.sh --container convert3d_1.0.0_20210104.simg --storage docker"
-      echo "./run_transparent_singularity.sh convert3d_1.0.0_20210104.simg"
-      echo "./run_transparent_singularity.sh convert3d_1.0.0_20210104 --unpack true --singularity-opts '--bind /cvmfs'"
+      echo "./run_transparent_apptainer.sh CONTAINERNAME"
+      echo "./run_transparent_apptainer.sh --container convert3d_1.0.0_20210104.simg --storage docker"
+      echo "./run_transparent_apptainer.sh convert3d_1.0.0_20210104.simg"
+      echo "./run_transparent_apptainer.sh convert3d_1.0.0_20210104 --unpack true --apptainer-opts '--bind /cvmfs'"
       echo "-----------------------------------------------"
       exit
    else
@@ -111,10 +111,10 @@ fi
 echo "containerEnding: ${containerEnding}"
 
 
-# echo "checking for singularity ..."
-qq=`which  singularity`
+# echo "checking for apptainer ..."
+qq=`which  apptainer`
 if [[  ${#qq} -lt 1 ]]; then
-   echo "This script requires singularity or apptainer on your path. E.g. add 'module load singularity' to your .bashrc"
+   echo "This script requires apptainer or apptainer on your path. E.g. add 'module load apptainer' to your .bashrc"
    echo "If you are root try again as normal user"
    exit 2
 fi
@@ -193,7 +193,7 @@ else
       # fallback to docker
       echo "$container does not exist in any cache - loading from docker!"
       storage="docker"
-      container_pull="singularity pull --name $container docker://vnmd/${containerName}_${containerVersion}:${containerDate}"
+      container_pull="apptainer pull --name $container docker://vnmd/${containerName}_${containerVersion}:${containerDate}"
    fi
 fi
 
@@ -211,32 +211,32 @@ fi
 
 if [[ $unpack = "true" ]]
 then
-   echo "unpacking singularity file to sandbox directory:"
-    singularity build --sandbox temp $container
+   echo "unpacking apptainer file to sandbox directory:"
+    apptainer build --sandbox temp $container
     rm -rf $container
     mv temp $container
 fi
 
 echo "checking if there is a README.md file in the container"
-echo "executing: singularity exec $singularity_opts --pwd $_base $container cat /README.md"
-singularity exec $singularity_opts --pwd $_base $container cat /README.md > README.md
+echo "executing: apptainer exec $apptainer_opts --pwd $_base $container cat /README.md"
+apptainer exec $apptainer_opts --pwd $_base $container cat /README.md > README.md
 
 echo "checking which executables exist inside container"
-echo "executing: singularity exec $singularity_opts --pwd $_base $container $_base/ts_binaryFinder.sh"
-singularity exec $singularity_opts --pwd $_base $container $_base/ts_binaryFinder.sh
+echo "executing: apptainer exec $apptainer_opts --pwd $_base $container $_base/ts_binaryFinder.sh"
+apptainer exec $apptainer_opts --pwd $_base $container $_base/ts_binaryFinder.sh
 
-echo "create singularity executable for each regular executable in commands.txt"
+echo "create apptainer executable for each regular executable in commands.txt"
 # $@ parses command line options.
 #test   executable="fslmaths"
 
-# The --env option requires singularity > 3.6 or apptainer. Test here:
+# The --env option requires apptainer > 3.6 or apptainer. Test here:
 required_version="3.6"
 if which apptainer >/dev/null 2>&1; then
     echo "Apptainer is installed."
-    singularity_version=3.6
+    apptainer_version=3.6
 else
-    echo "Apptainer is not installed. Testing for singularity version."
-    singularity_version=$(singularity version | cut -d'-' -f1)
+    echo "Apptainer is not installed. Testing for apptainer version."
+    apptainer_version=$(apptainer version | cut -d'-' -f1)
 fi
 
 while read executable; do \
@@ -244,10 +244,10 @@ while read executable; do \
    echo "#!/usr/bin/env bash" > $executable
    echo "export PWD=\`pwd -P\`" >> $executable
 
-   # neurodesk_singularity_opts is a global variable that can be set in neurodesk for example --nv for gpu support
+   # neurodesk_apptainer_opts is a global variable that can be set in neurodesk for example --nv for gpu support
    # --silent is required to suppress bind mound warnings (e.g. for /etc/localtime)
    # --cleanenv is required to prevent environment variables on the host to affect the containers (e.g. Julia and R packages), but to work 
-   # correctly with GUIs, the DISPLAY variable needs to be set as well. This only works in singularity >= 3.6.0
+   # correctly with GUIs, the DISPLAY variable needs to be set as well. This only works in apptainer >= 3.6.0
    # --bind is needed to handle non-default temp directories (Github issue #11)
    for customtmp in TMP TMPDIR TEMP TEMPDIR; do
       eval tmpvar=\$$customtmp
@@ -255,11 +255,11 @@ while read executable; do \
          bindtmpdir="--bind \$$customtmp:/tmp"
       fi
    done
-   if printf '%s\n' "$required_version" "$singularity_version" | sort -V | head -n1 | grep -q "$required_version"; then
-      echo "singularity --silent exec --cleanenv --env DISPLAY=\$DISPLAY $bindtmpdir \$neurodesk_singularity_opts --pwd \"\$PWD\" $_base/$container $executable \"\$@\"" >> $executable
+   if printf '%s\n' "$required_version" "$apptainer_version" | sort -V | head -n1 | grep -q "$required_version"; then
+      echo "apptainer --silent exec --cleanenv --env DISPLAY=\$DISPLAY $bindtmpdir \$neurodesk_apptainer_opts --pwd \"\$PWD\" $_base/$container $executable \"\$@\"" >> $executable
    else
-      echo "Singularity version is older than $required_version. GUIs will not work correctly!"
-      echo "singularity --silent exec --cleanenv $bindtmpdir \$neurodesk_singularity_opts --pwd \"\$PWD\" $_base/$container $executable \"\$@\"" >> $executable
+      echo "apptainer version is older than $required_version. GUIs will not work correctly!"
+      echo "apptainer --silent exec --cleanenv $bindtmpdir \$neurodesk_apptainer_opts --pwd \"\$PWD\" $_base/$container $executable \"\$@\"" >> $executable
    fi
 
    chmod a+x $executable

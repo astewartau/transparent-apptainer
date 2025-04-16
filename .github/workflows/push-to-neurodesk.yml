@@ -7,24 +7,24 @@ on:
     branches: [ master ]
 
 jobs:
-  test_singularity_aria2:
+  test_apptainer_aria2:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v4
-    - name: Test singularity and aria2 before pushing to neurocommand
-      run: /bin/bash .github/workflows/test_singularity_aria2.sh
-  test_singularity_curl:
+    - name: Test apptainer and aria2 before pushing to neurocommand
+      run: /bin/bash .github/workflows/test_apptainer_aria2.sh
+  test_apptainer_curl:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v4
-    - name: Test singularity and curl before pushing to neurocommand
-      run: /bin/bash .github/workflows/test_singularity_curl.sh
-  test_singularity_cvmfs:
+    - name: Test apptainer and curl before pushing to neurocommand
+      run: /bin/bash .github/workflows/test_apptainer_curl.sh
+  test_apptainer_cvmfs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v4
-    - name: Test singularity and cvmfs before pushing to neurocommand
-      run: /bin/bash .github/workflows/test_singularity_cvmfs.sh
+    - name: Test apptainer and cvmfs before pushing to neurocommand
+      run: /bin/bash .github/workflows/test_apptainer_cvmfs.sh
   test_apptainer_curl:
     runs-on: ubuntu-22.04
     steps:
@@ -44,7 +44,7 @@ jobs:
     - name: Test apptainer and curl before pushing to neurocommand
       run: /bin/bash .github/workflows/test_apptainer_aria2.sh
   push_to_neurocommand:
-    needs: [test_singularity_aria2,test_singularity_curl,test_singularity_cvmfs,test_apptainer_aria2,test_apptainer_curl,test_apptainer_cvmfs]
+    needs: [test_apptainer_aria2,test_apptainer_curl,test_apptainer_cvmfs,test_apptainer_aria2,test_apptainer_curl,test_apptainer_cvmfs]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -60,9 +60,9 @@ jobs:
           git config pull.ff only
       - name: Setup git remotes
         run: |
-          git remote add subtree https://stebo85:${{secrets.AUTOCOMMIT_FOR_NEUROCOMMAND}}@github.com/NeuroDesk/transparent-singularity.git
+          git remote add subtree https://stebo85:${{secrets.AUTOCOMMIT_FOR_NEUROCOMMAND}}@github.com/NeuroDesk/transparent-apptainer.git
           git remote add upstream https://stebo85:${{secrets.AUTOCOMMIT_FOR_NEUROCOMMAND}}@github.com/NeuroDesk/neurocommand.git
-      - name: Pull transparent-singularity into subtree
-        run:  git subtree pull --prefix neurodesk/transparent-singularity subtree master --squash
+      - name: Pull transparent-apptainer into subtree
+        run:  git subtree pull --prefix neurodesk/transparent-apptainer subtree master --squash
       - name: Push to neurodesk
         run:  git push upstream main

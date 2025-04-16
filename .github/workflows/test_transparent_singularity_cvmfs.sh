@@ -43,7 +43,7 @@ ls /cvmfs/neurodesk.ardc.edu.au/containers
 
 cvmfs_config stat -v neurodesk.ardc.edu.au
 
-bash run_transparent_singularity.sh --container itksnap_3.8.0_20201208.simg
+bash run_transparent_apptainer.sh --container itksnap_3.8.0_20201208.simg
 
 # check if container exists on cvmfs
 
@@ -55,18 +55,18 @@ else
 fi
 
 # check if container link exists
-if [ -L /home/runner/work/transparent-singularity/transparent-singularity/itksnap_3.8.0_20201208.simg ]; then
+if [ -L /home/runner/work/transparent-apptainer/transparent-apptainer/itksnap_3.8.0_20201208.simg ]; then
     echo "[DEBUG]: Container file link exists"
 else 
     echo "[DEBUG]: Container file does not exist! Something went wrong."
     exit 1
 fi
 
-# check if transparent singularity generated executable output file:
-FILE="/home/runner/work/transparent-singularity/transparent-singularity/itksnap"
+# check if transparent apptainer generated executable output file:
+FILE="/home/runner/work/transparent-apptainer/transparent-apptainer/itksnap"
 if [ -f $FILE ];then
     echo "[DEBUG]: $FILE exists."
 else
-    echo "[DEBUG]: $FILE doesn't exist. Something went wrong with transparent singularity. "
+    echo "[DEBUG]: $FILE doesn't exist. Something went wrong with transparent apptainer. "
     exit 1
 fi

@@ -87,7 +87,7 @@ if [ -z "$container" ]; then
 
       # define mount points for this system
       echo "-------------------------------------"
-      echo 'IMPORTANT: you need to set your system specific mount points in your .bashrc!: e.g. export SINGULARITY_BINDPATH="/opt,/data"'
+      echo 'IMPORTANT: you need to set your system specific mount points in your .bashrc!: e.g. export APPTAINER_BINDPATH="/opt,/data"'
       echo "-------------------------------------"
 fi
 
